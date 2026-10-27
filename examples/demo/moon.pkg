@@ -1,0 +1,9 @@
+import {
+  "fan-ere/moon-graphflow/graph",
+  "fan-ere/moon-graphflow/maxflow",
+  "fan-ere/moon-graphflow/mincost",
+  "fan-ere/moon-graphflow/matching",
+  "fan-ere/moon-graphflow/cut",
+}
+
+pkgtype(kind: "executable")
