@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Toolchain versions
+        run: moon version --all
+
+      - name: Check, build and test every target
+        run: |
+          moon check --deny-warn --target all
+          moon build --target all
+          moon test --deny-warn --target all
+
+      # The formatter's exact output changes between toolchain releases, so a
+      # formatting diff must not turn a green build red. It is reported as a
+      # warning; contributors run `moon fmt` before committing.
+      - name: Formatting report (non-blocking)
+        run: |
+          if ! moon fmt --check; then
+            echo "::warning::moon fmt --check reports a diff; this is usually toolchain drift, not a code problem"
+          fi
+
+      - name: Run the example on every backend
+        run: |
+          for target in wasm-gc js native; do
+            echo "== $target =="
+            moon run examples/demo --target "$target" | head -n 30
+          done
